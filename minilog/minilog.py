@@ -1,5 +1,5 @@
 import os
-import sqlite3
+from bcrypt import hashpw, gensalt
 from flask import (
     Flask, request, session, g, redirect, url_for,
     abort, render_template, flash
@@ -102,11 +102,21 @@ def initdb_command():
     print('Initialized the database.')
 
 @app.cli.command('populatedb')
-def initdb_command():
+def populate_command():
     """Terminal command: Adds mock data to the database."""
     populate_db()
     print('Mock data added the database.')
 
+
+def create_hash(plaintext_password):
+    hashed = hashpw(plaintext_password, gensalt())
+    return hashed
+
+def check_password(password_attempt, hashed):
+    if hashpw(password_attempt, hashed) == hashed:
+        print "It matches"
+    else:
+        print "It does not match"
 
 # ----------------------------
 # views
