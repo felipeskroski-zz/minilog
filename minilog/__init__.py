@@ -1,0 +1,1 @@
+from .minilog import app

@@ -1,0 +1,3 @@
+graft minilog/templates
+graft minilog/static
+include minilog/schema.sql
