@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_category') }}" method=post class=add-entry>
+      <dl>
+        <dt>Name:
+        <dd><input type=text size=30 name=name>
+        <dd><input type=submit value=Share>
+      </dl>
+    </form>
+  {% endif %}
+  <ul class=entries>
+  {% for entry in categories %}
+    <li><h2>{{ entry.name }}</h2></li>
+  {% else %}
+    <li><em>Unbelievable.  No categories here so far</em></li>
+  {% endfor %}
+  </ul>
+  <a href="{{ url_for('add_category') }}">Add category</a>
+{% endblock %}
