@@ -11,12 +11,9 @@ app = Flask(__name__)  # create the application instance :)
 app.config.from_object(__name__)  # load config from this file , minilog.py
 # Load default config and override config from an environment variable
 app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'minilog.db'),
     SQLALCHEMY_DATABASE_URI='sqlite:////%s' % os.path.join(app.root_path, 'minilog.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS = False,
     SECRET_KEY='A0Zr98j/3yX R~XHH!jmN]LWX/,?RT',
-    USERNAME='admin',
-    PASSWORD='password'
 ))
 
 # set the secret key.  keep this really secret:
@@ -179,8 +176,10 @@ def add_category():
     error = None
     if request.method == 'POST':
         name = request.form['name']
+        if not current_user():
+            return redirect(url_for('login'))
         if name:
-            user = User.query.first_or_404()
+            user = current_user()
             category = Category(name, user.id)
             db.session.add(category)
             db.session.commit()
@@ -190,7 +189,7 @@ def add_category():
             error = 'Name cannot be empty'
     if current_user():
         return render_template('new_category.html', error=error)
-    return redirect(url_for('show_categories'))
+    return redirect(url_for('login'))
 
 
 
