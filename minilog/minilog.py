@@ -2,22 +2,24 @@ import os
 from bcrypt import hashpw, gensalt
 from flask import (
     Flask, request, session, g, redirect, url_for,
-    abort, render_template, flash
+    abort, render_template, flash, escape
 )
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)  # create the application instance :)
 app.config.from_object(__name__)  # load config from this file , minilog.py
-
 # Load default config and override config from an environment variable
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'minilog.db'),
     SQLALCHEMY_DATABASE_URI='sqlite:////%s' % os.path.join(app.root_path, 'minilog.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS = False,
-    SECRET_KEY='secret_sauce',
+    SECRET_KEY='A0Zr98j/3yX R~XHH!jmN]LWX/,?RT',
     USERNAME='admin',
     PASSWORD='password'
 ))
+
+# set the secret key.  keep this really secret:
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 app.config.from_envvar('MINILOG_SETTINGS', silent=True)
 db = SQLAlchemy(app)
 
@@ -35,6 +37,17 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.name
+
+    @classmethod
+    def by_id(cls, uid):
+        """Gets user by id"""
+        return User.get_by_id(uid)
+
+    @classmethod
+    def by_email(cls, email):
+        """Gets user by name"""
+        u = User.query.filter_by(email= email).first()
+        return u
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -108,15 +121,15 @@ def populate_command():
     print('Mock data added the database.')
 
 
+# ----------------------------
+# authentication helpers
+# ----------------------------
 def create_hash(plaintext_password):
-    hashed = hashpw(plaintext_password, gensalt())
-    return hashed
+    return hashpw(plaintext_password, gensalt())
 
-def check_password(password_attempt, hashed):
-    if hashpw(password_attempt, hashed) == hashed:
-        print "It matches"
-    else:
-        print "It does not match"
+
+def check_hash(password_attempt, hashed):
+    return hashpw(password_attempt, hashed) == hashed
 
 # ----------------------------
 # views
@@ -124,6 +137,10 @@ def check_password(password_attempt, hashed):
 @app.route('/')
 def show_categories():
     categories = Category.query.all()
+    if 'email' in session:
+        u = User.by_email(escape(session['email']))
+        return render_template(
+            'show_categories.html', categories=categories, user=u)
     return render_template('show_categories.html', categories=categories)
 
 
@@ -148,19 +165,20 @@ def add_category():
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != app.config['USERNAME']:
-            error = 'Invalid username'
-        elif request.form['password'] != app.config['PASSWORD']:
-            error = 'Invalid password'
-        else:
-            session['logged_in'] = True
+        email = request.form['email']
+        password = request.form['password']
+        u = User.by_email(email)
+        if u and u.password == password:
+            session['email'] = request.form['email']
             flash('You were logged in')
             return redirect(url_for('show_categories'))
+        else:
+            error = "User not valid"
     return render_template('login.html', error=error)
 
 
 @app.route('/logout')
 def logout():
-    session.pop('logged_in', None)
+    session.pop('email', None)
     flash('You were logged out')
     return redirect(url_for('show_categories'))
