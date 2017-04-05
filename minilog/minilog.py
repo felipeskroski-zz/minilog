@@ -1,4 +1,6 @@
 import os
+from datetime import datetime
+
 from bcrypt import hashpw, gensalt
 from flask import (
     Flask, request, session, g, redirect, url_for,
@@ -62,14 +64,14 @@ class Item(db.Model):
     category = db.relationship(
         'Category', backref=db.backref('item', lazy='dynamic'))
 
-    def __init__(self, name, body, category, author, pub_date=None):
+    def __init__(self, name, body, category_id, author_id, pub_date=None):
         self.name = name
         self.body = body
         if pub_date is None:
             pub_date = datetime.utcnow()
         self.pub_date = pub_date
-        self.category = category
-        self.author = author
+        self.category_id = category_id
+        self.author_id = author_id
 
     def __repr__(self):
         return '<Post %r>' % self.title
@@ -197,9 +199,8 @@ class CategoryForm(Form):
 
 class ItemForm(Form):
     name = StringField('Name', [validators.DataRequired()])
-    body = TextAreaField('Description', [validators.DataRequired()])
-    category_id = SelectField('Category')
-    author_id = HiddenField('Author', [validators.DataRequired()])
+    body = TextAreaField('Description')
+    category_id = SelectField('Category', coerce=int)
 
 # ----------------------------
 # views
@@ -216,10 +217,10 @@ def show_categories():
 
 @app.route('/category/new', methods=['POST', 'GET'])
 def add_category():
-    form = SignupForm(request.form)
+    form = CategoryForm(request.form)
     error = None
+    user = current_user()
     if request.method == 'POST' and form.validate():
-        user = current_user()
         category = Category(form.name.data, user.id)
         db.session.add(category)
         db.session.commit()
@@ -233,6 +234,8 @@ def add_category():
 
 
 @app.route('/category/delete/<int:cat_id>')
+# TODO when removing a category also remove the items
+# TODO double check if the user is sure 
 def delete_category(cat_id):
     cat = Category.by_id(cat_id)
     if not current_user() or not cat.is_author:
@@ -258,14 +261,22 @@ def show_items(c_name):
 
 @app.route('/<c_name>/item/new', methods=['GET', 'POST'])
 def add_item(c_name):
-    categories = Category.query.order_by('name').all()
-    u = current_user()
     form = ItemForm(request.form)
-    form.category_id.choices = [
-        (c.id, c.name) for c in categories]
-    form.author_id.data = int(u.id)
-    return render_template(
-        'new_item.html', form=form, user=u)
+    u = current_user()
+    categories = Category.query.order_by('name').all()
+    form.category_id.choices = [(c.id, c.name) for c in categories]
+
+    if request.method == 'POST' and form.validate():
+        c_id = form.category_id.data
+        c = Category.by_id(c_id)
+        item = Item(form.name.data, form.body.data, c_id, u.id)
+        db.session.add(item)
+        db.session.commit()
+        flash('Item created successfully')
+        return render_template('category.html', category=c, user=u)
+    else:
+        return render_template(
+            'new_item.html', form=form, user=u)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
