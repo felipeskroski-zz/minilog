@@ -50,12 +50,6 @@ class User(db.Model):
         u = User.query.filter_by(email= email).first()
         return u
 
-    @classmethod
-    def current_user(cls, email):
-        """Gets current logged user"""
-        u = User.query.filter_by(email= email).first()
-        return u
-
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -142,6 +136,9 @@ def create_hash(plaintext_password):
 def check_hash(password_attempt, hashed):
     return hashpw(password_attempt, hashed) == hashed
 
+def current_user():
+    return User.by_email(escape(session['email']))
+
 # ----------------------------
 # Forms
 # ----------------------------
@@ -169,7 +166,7 @@ class LoginForm(Form):
 def show_categories():
     categories = Category.query.all()
     if 'email' in session:
-        u = User.by_email(escape(session['email']))
+        u = current_user()
         return render_template(
             'show_categories.html', categories=categories, user=u)
     return render_template('show_categories.html', categories=categories)
