@@ -4,11 +4,11 @@
 <div class=page>
   <h1>Minilog</h1>
   <div class=metanav>
-  {% if not session.logged_in %}
+  {% if session.email %}
+    <a href="{{ url_for('logout') }}">Log out</a>
+  {% else %}
     <a href="{{ url_for('login') }}">Login</a> |
     <a href="{{ url_for('signup') }}">Signup</a>
-  {% else %}
-    <a href="{{ url_for('logout') }}">log out</a>
   {% endif %}
   </div>
   {% for message in get_flashed_messages() %}

@@ -46,7 +46,13 @@ class User(db.Model):
 
     @classmethod
     def by_email(cls, email):
-        """Gets user by name"""
+        """Gets user by email"""
+        u = User.query.filter_by(email= email).first()
+        return u
+
+    @classmethod
+    def current_user(cls, email):
+        """Gets current logged user"""
         u = User.query.filter_by(email= email).first()
         return u
 
@@ -149,6 +155,11 @@ class SignupForm(Form):
     ])
     confirm = PasswordField('Confirm Password')
 
+class LoginForm(Form):
+    email = StringField('Email', [validators.Length(min=6, max=35)])
+    password = PasswordField('Password', [
+        validators.DataRequired(),
+    ])
 
 # ----------------------------
 # views
@@ -196,18 +207,16 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        u = User.by_email(email)
-        if u and check_hash(str(password), str(u.password)):
+    form = LoginForm(request.form)
+    if request.method == 'POST' and form.validate():
+        u = User.by_email(form.email.data)
+        if u and check_hash(str(form.password.data), str(u.password)):
             session['email'] = request.form['email']
             flash('You were logged in')
             return redirect(url_for('show_categories'))
         else:
             error = "User not valid"
-    return render_template('login.html', error=error)
+    return render_template('login.html', form=form)
 
 
 @app.route('/logout')
