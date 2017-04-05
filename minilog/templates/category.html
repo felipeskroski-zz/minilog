@@ -1,0 +1,20 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h3>{{category.name}}</h3>
+  <ul class=entries>
+  {% for i in category.get_items() %}
+    <li>
+      <h2>{{ i.name }}
+        {% if i.author_id == user.id %}
+          <a href="#">[X]</a>
+        {% endif %}
+      </h2>
+    </li>
+  {% else %}
+    <li><em>Unbelievable.  No items here so far</em></li>
+  {% endfor %}
+  </ul>
+  {% if user %}
+    <a href="#">Add item</a>
+  {% endif %}
+{% endblock %}

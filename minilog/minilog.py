@@ -81,6 +81,7 @@ class Item(db.Model):
 
 
 class Category(db.Model):
+    # TODO make name unique
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -99,12 +100,23 @@ class Category(db.Model):
         """Gets Category by id"""
         return Category.query.filter_by(id=c_id).first()
 
+    @classmethod
+    def by_name(cls, c_name):
+        """Gets Category by name"""
+        return Category.query.filter_by(name=c_name).first()
+
     def is_author(self):
         return self.author_id == current_user().id
+
+    def get_items(self):
+        """Gets all items in this category"""
+        return Item.query.filter_by(category_id=self.id).all()
+
 
 # ----------------------------
 # Database config
 # ----------------------------
+
 
 def init_db():
     db.drop_all()
@@ -148,14 +160,16 @@ def create_hash(plaintext_password):
 def check_hash(password_attempt, hashed):
     return hashpw(password_attempt, hashed) == hashed
 
+
 def current_user():
-    if not 'email' in session:
+    if 'email' not in session:
         return False
     return User.by_email(escape(session['email']))
 
 # ----------------------------
 # Forms
 # ----------------------------
+
 
 class SignupForm(Form):
     name = StringField('Name', [validators.Length(min=4, max=25)])
@@ -166,15 +180,28 @@ class SignupForm(Form):
     ])
     confirm = PasswordField('Confirm Password')
 
+
 class LoginForm(Form):
     email = StringField('Email', [validators.Length(min=6, max=35)])
     password = PasswordField('Password', [
-        validators.DataRequired(),
+        validators.DataRequired()
+    ])
+
+
+class CategoryForm(Form):
+    name = StringField('Name', [validators.DataRequired()])
+
+
+class ItemForm(Form):
+    email = StringField('Email', [validators.Length(min=6, max=35)])
+    password = PasswordField('Password', [
+        validators.DataRequired()
     ])
 
 # ----------------------------
 # views
 # ----------------------------
+
 
 @app.route('/')
 def show_categories():
@@ -189,24 +216,20 @@ def show_categories():
 
 @app.route('/category/new', methods=['POST', 'GET'])
 def add_category():
-    user = current_user()
+    form = SignupForm(request.form)
     error = None
-    if request.method == 'POST':
-        name = request.form['name']
-        if name:
-            user = current_user()
-            category = Category(name, user.id)
-            db.session.add(category)
-            db.session.commit()
-            flash('New category was successfully posted')
-            return redirect(url_for('show_categories'))
-        else:
-            error = 'Name cannot be empty'
+    if request.method == 'POST' and form.validate():
+        user = current_user()
+        category = Category(form.name.data, user.id)
+        db.session.add(category)
+        db.session.commit()
+        flash('New category was successfully posted')
+        return redirect(url_for('show_categories'))
     else:
         if not user:
             flash('Only logged users can create categories')
             return redirect(url_for('login'))
-    return render_template('new_category.html', error=error)
+    return render_template('new_category.html', form=form)
 
 
 @app.route('/category/delete/<int:cat_id>')
@@ -225,6 +248,17 @@ def delete_category(cat_id):
         return redirect(url_for('show_categories'))
 
 
+@app.route('/<c_name>')
+def show_items(c_name):
+    c = Category.by_name(c_name)
+    u = current_user()
+    return render_template(
+        'category.html', category=c, user=u)
+
+
+@app.route('/<cat_name>/item/new')
+def add_item():
+    user = current_user()
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -240,6 +274,7 @@ def signup():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+# TODO Check if user already exists
 def login():
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():

@@ -1,12 +1,11 @@
 {% extends "layout.html" %}
 {% block body %}
   <h2>New category</h2>
-  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
-    <form action="{{ url_for('add_category') }}" method=post class=add-entry>
-      <dl>
-        <dt>Name:
-        <dd><input type=text size=30 name=name>
-        <dd><input type=submit value=Share>
-      </dl>
-    </form>
+  {% from "_formhelpers.html" import render_field %}
+  <form method=post>
+    <dl>
+      {{ render_field(form.name) }}
+    </dl>
+    <p><input type=submit value=Login>
+  </form>
 {% endblock %}
