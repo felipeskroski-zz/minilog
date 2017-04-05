@@ -1,11 +1,14 @@
 {% extends "layout.html" %}
 {% block body %}
-  {% if user %}
-    <p>logged in as {{user.name}}</p>
-  {% endif %}
   <ul class=entries>
-  {% for entry in categories %}
-    <li><h2>{{ entry.name }}</h2></li>
+  {% for c in categories %}
+    <li>
+      <h2>{{ c.name }}
+        {% if c.author_id == user.id %}
+        <a href="{{url_for('delete_category', cat_id=c.id)}}">[X]</a>
+        {% endif %}
+      </h2>
+    </li>
   {% else %}
     <li><em>Unbelievable.  No categories here so far</em></li>
   {% endfor %}

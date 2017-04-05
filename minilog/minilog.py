@@ -39,13 +39,12 @@ class User(db.Model):
     @classmethod
     def by_id(cls, uid):
         """Gets user by id"""
-        return User.get_by_id(uid)
+        return User.query.filter_by(id=uid).first()
 
     @classmethod
     def by_email(cls, email):
         """Gets user by email"""
-        u = User.query.filter_by(email= email).first()
-        return u
+        return User.query.filter_by(email=email).first()
 
 
 class Item(db.Model):
@@ -72,6 +71,14 @@ class Item(db.Model):
     def __repr__(self):
         return '<Post %r>' % self.title
 
+    @classmethod
+    def by_id(cls, i_id):
+        """Gets Item by id"""
+        return Item.query.filter_by(id=i_id).first()
+
+    def is_author(self):
+        return self.author_id == current_user().id
+
 
 class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,6 +93,14 @@ class Category(db.Model):
 
     def __repr__(self):
         return '<Category %r>' % self.name
+
+    @classmethod
+    def by_id(cls, c_id):
+        """Gets Category by id"""
+        return Category.query.filter_by(id=c_id).first()
+
+    def is_author(self):
+        return self.author_id == current_user().id
 
 # ----------------------------
 # Database config
@@ -164,20 +179,20 @@ class LoginForm(Form):
 @app.route('/')
 def show_categories():
     categories = Category.query.all()
+    u = current_user()
     if 'email' in session:
-        u = current_user()
         return render_template(
             'show_categories.html', categories=categories, user=u)
-    return render_template('show_categories.html', categories=categories)
+    return render_template(
+        'show_categories.html', categories=categories, user=u)
 
 
-@app.route('/newcategory', methods=['POST', 'GET'])
+@app.route('/category/new', methods=['POST', 'GET'])
 def add_category():
+    user = current_user()
     error = None
     if request.method == 'POST':
         name = request.form['name']
-        if not current_user():
-            return redirect(url_for('login'))
         if name:
             user = current_user()
             category = Category(name, user.id)
@@ -187,9 +202,27 @@ def add_category():
             return redirect(url_for('show_categories'))
         else:
             error = 'Name cannot be empty'
-    if current_user():
-        return render_template('new_category.html', error=error)
-    return redirect(url_for('login'))
+    else:
+        if not user:
+            flash('Only logged users can create categories')
+            return redirect(url_for('login'))
+    return render_template('new_category.html', error=error)
+
+
+@app.route('/category/delete/<int:cat_id>')
+def delete_category(cat_id):
+    cat = Category.by_id(cat_id)
+    if not current_user() or not cat.is_author:
+        flash('You have to login to delete a category')
+        return redirect(url_for('show_categories'))
+    if not cat.is_author():
+        flash('Only the author can delete this category')
+        return redirect(url_for('show_categories'))
+    else:
+        db.session.delete(cat)
+        db.session.commit()
+        flash('%s category deleted successfully' % cat.name)
+        return redirect(url_for('show_categories'))
 
 
 
