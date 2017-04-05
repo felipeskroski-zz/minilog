@@ -15,6 +15,6 @@
   {% endfor %}
   </ul>
   {% if user %}
-    <a href="#">Add item</a>
+    <a href="{{url_for('add_item', c_name=category.name)}}">Add item</a>
   {% endif %}
 {% endblock %}

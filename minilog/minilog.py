@@ -4,7 +4,10 @@ from flask import (
     Flask, request, session, g, redirect, url_for,
     abort, render_template, flash, escape
 )
-from wtforms import Form, BooleanField, StringField, PasswordField, validators
+from wtforms import (
+    Form, BooleanField, StringField, PasswordField, SelectField, HiddenField,
+    TextAreaField, validators
+)
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)  # create the application instance :)
@@ -193,10 +196,10 @@ class CategoryForm(Form):
 
 
 class ItemForm(Form):
-    email = StringField('Email', [validators.Length(min=6, max=35)])
-    password = PasswordField('Password', [
-        validators.DataRequired()
-    ])
+    name = StringField('Name', [validators.DataRequired()])
+    body = TextAreaField('Description', [validators.DataRequired()])
+    category_id = SelectField('Category')
+    author_id = HiddenField('Author', [validators.DataRequired()])
 
 # ----------------------------
 # views
@@ -207,9 +210,6 @@ class ItemForm(Form):
 def show_categories():
     categories = Category.query.all()
     u = current_user()
-    if 'email' in session:
-        return render_template(
-            'show_categories.html', categories=categories, user=u)
     return render_template(
         'show_categories.html', categories=categories, user=u)
 
@@ -256,9 +256,16 @@ def show_items(c_name):
         'category.html', category=c, user=u)
 
 
-@app.route('/<cat_name>/item/new')
-def add_item():
-    user = current_user()
+@app.route('/<c_name>/item/new', methods=['GET', 'POST'])
+def add_item(c_name):
+    categories = Category.query.order_by('name').all()
+    u = current_user()
+    form = ItemForm(request.form)
+    form.category_id.choices = [
+        (c.id, c.name) for c in categories]
+    form.author_id.data = int(u.id)
+    return render_template(
+        'new_item.html', form=form, user=u)
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():

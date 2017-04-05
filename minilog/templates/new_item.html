@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>New item</h2>
+  {% from "_formhelpers.html" import render_field, category_select %}
+  <form method=post>
+    <dl>
+      {{ render_field(form.name) }}
+      {{ render_field(form.body) }}
+    </dl>
+    {{ form.category_id }}
+    {{ form.author_id }}
+    <p><input type=submit value=Login>
+  </form>
+{% endblock %}
