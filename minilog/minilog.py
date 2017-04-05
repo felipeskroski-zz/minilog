@@ -137,6 +137,8 @@ def check_hash(password_attempt, hashed):
     return hashpw(password_attempt, hashed) == hashed
 
 def current_user():
+    if not 'email' in session:
+        return False
     return User.by_email(escape(session['email']))
 
 # ----------------------------
@@ -186,7 +188,10 @@ def add_category():
             return redirect(url_for('show_categories'))
         else:
             error = 'Name cannot be empty'
-    return render_template('new_category.html', error=error)
+    if current_user():
+        return render_template('new_category.html', error=error)
+    return redirect(url_for('show_categories'))
+
 
 
 @app.route('/signup', methods=['GET', 'POST'])
