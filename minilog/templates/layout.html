@@ -5,7 +5,8 @@
   <h1>Minilog</h1>
   <div class=metanav>
   {% if not session.logged_in %}
-    <a href="{{ url_for('login') }}">log in</a>
+    <a href="{{ url_for('login') }}">Login</a> |
+    <a href="{{ url_for('signup') }}">Signup</a>
   {% else %}
     <a href="{{ url_for('logout') }}">log out</a>
   {% endif %}

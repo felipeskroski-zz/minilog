@@ -4,6 +4,7 @@ from flask import (
     Flask, request, session, g, redirect, url_for,
     abort, render_template, flash, escape
 )
+from wtforms import Form, BooleanField, StringField, PasswordField, validators
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)  # create the application instance :)
@@ -33,7 +34,7 @@ class User(db.Model):
     def __init__(self, name, email, password):
         self.name = name
         self.email = email
-        self.password = password
+        self.password = create_hash(str(password))
 
     def __repr__(self):
         return '<User %r>' % self.name
@@ -48,6 +49,7 @@ class User(db.Model):
         """Gets user by name"""
         u = User.query.filter_by(email= email).first()
         return u
+
 
 class Item(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,6 +90,9 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
+# ----------------------------
+# Database config
+# ----------------------------
 
 def init_db():
     db.drop_all()
@@ -132,8 +137,23 @@ def check_hash(password_attempt, hashed):
     return hashpw(password_attempt, hashed) == hashed
 
 # ----------------------------
+# Forms
+# ----------------------------
+
+class SignupForm(Form):
+    name = StringField('Name', [validators.Length(min=4, max=25)])
+    email = StringField('Email', [validators.Length(min=6, max=35)])
+    password = PasswordField('Password', [
+        validators.DataRequired(),
+        validators.EqualTo('confirm', message='Passwords must match')
+    ])
+    confirm = PasswordField('Confirm Password')
+
+
+# ----------------------------
 # views
 # ----------------------------
+
 @app.route('/')
 def show_categories():
     categories = Category.query.all()
@@ -161,6 +181,19 @@ def add_category():
     return render_template('new_category.html', error=error)
 
 
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = SignupForm(request.form)
+    if request.method == 'POST' and form.validate():
+        user = User(form.name.data, form.email.data,
+                    form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('Thanks for registering')
+        return redirect(url_for('show_categories'))
+    return render_template('signup.html', form=form)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -168,7 +201,7 @@ def login():
         email = request.form['email']
         password = request.form['password']
         u = User.by_email(email)
-        if u and u.password == password:
+        if u and check_hash(str(password), str(u.password)):
             session['email'] = request.form['email']
             flash('You were logged in')
             return redirect(url_for('show_categories'))
