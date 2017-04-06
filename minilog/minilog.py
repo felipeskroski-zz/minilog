@@ -309,13 +309,14 @@ def show_items(c_name):
     return render_template('category.html', category=c, user=u)
 
 
-@app.route('/<c_name>/item/new', methods=['GET', 'POST'])
+@app.route('/item/new', methods=['GET', 'POST'])
 @login_required
-def add_item(c_name):
+def add_item():
     """Creates a new item"""
     form = ItemForm(request.form)
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
+
     u = current_user()
     if request.method == 'POST' and form.validate():
         c_id = form.category_id.data
@@ -326,7 +327,11 @@ def add_item(c_name):
         flash('Item created successfully')
         return render_template('category.html', category=c, user=u)
     else:
-        return render_template('item_new.html', form=form, user=u)
+        c_id = request.args.get('c_id')
+        if c_id:
+            form.category_id.data = int(c_id)
+        return render_template(
+            'item_new.html', form=form, user=u)
 
 
 @app.route('/item/delete/<int:item_id>')
