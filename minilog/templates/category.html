@@ -4,9 +4,12 @@
   <ul class=entries>
   {% for i in category.get_items() %}
     <li>
-      <h2>{{ i.name }}
+      <h2>
+        <a href="{{url_for('show_item', c_name=category.name, item_name=i.name)}}">
+          {{ i.name }}
+        </a>
         {% if i.author_id == user.id %}
-          <a href="#">[X]</a>
+          <a href="{{url_for('delete_item', item_id=i.id)}}">[X]</a>
         {% endif %}
       </h2>
     </li>

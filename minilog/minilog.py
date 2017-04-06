@@ -81,8 +81,18 @@ class Item(db.Model):
         """Gets Item by id"""
         return Item.query.filter_by(id=i_id).first()
 
+    @classmethod
+    def by_name(cls, i_name):
+        """Gets item by name"""
+        return Item.query.filter_by(name=i_name).first()
+
     def is_author(self):
+        """Check if current user is this item's author"""
         return self.author_id == current_user().id
+
+    def get_category(self):
+        """Gets this item's category"""
+        return Category.query.filter_by(id=self.category_id).first()
 
 
 class Category(db.Model):
@@ -116,6 +126,8 @@ class Category(db.Model):
     def get_items(self):
         """Gets all items in this category"""
         return Item.query.filter_by(category_id=self.id).all()
+
+
 
 
 # ----------------------------
@@ -235,12 +247,12 @@ def add_category():
 
 @app.route('/category/delete/<int:cat_id>')
 # TODO when removing a category also remove the items
-# TODO double check if the user is sure 
+# TODO double check if the user is sure
 def delete_category(cat_id):
     cat = Category.by_id(cat_id)
     if not current_user() or not cat.is_author:
         flash('You have to login to delete a category')
-        return redirect(url_for('show_categories'))
+        return redirect(url_for('login'))
     if not cat.is_author():
         flash('Only the author can delete this category')
         return redirect(url_for('show_categories'))
@@ -277,6 +289,32 @@ def add_item(c_name):
     else:
         return render_template(
             'new_item.html', form=form, user=u)
+
+
+@app.route('/item/delete/<int:item_id>')
+def delete_item(item_id):
+    item = Item.by_id(item_id)
+    c = item.get_category()
+    u = current_user()
+    if not current_user() or not item.is_author:
+        flash('You have to login to delete an Item')
+        return redirect(url_for('login'))
+    if not item.is_author():
+        flash('Only the author can delete this item')
+        return render_template('category.html', category=c, user=u)
+    else:
+        db.session.delete(item)
+        db.session.commit()
+        flash('%s deleted successfully' % item.name)
+        return render_template('category.html', category=c, user=u)
+
+@app.route('/<c_name>/<item_name>')
+def show_item(c_name, item_name):
+    item = Item.by_name(item_name)
+    u = current_user()
+    return render_template(
+        'show_item.html', c_name=c_name, item=item)
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
