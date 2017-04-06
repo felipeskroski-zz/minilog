@@ -28,6 +28,12 @@ db = SQLAlchemy(app)
 
 
 class User(db.Model):
+    """
+    Creates user model
+    name = the user name
+    email = user email
+    password = hashed password
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     email = db.Column(db.String(120), unique=True)
@@ -53,6 +59,14 @@ class User(db.Model):
 
 
 class Item(db.Model):
+    """
+    Creates item model
+    name = the item's name
+    body = item's description
+    pub_date = creation's date
+    author_id = the id of the User who created the Item
+    category_id = the category in wich the item belongs
+    """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80))
     body = db.Column(db.Text)
@@ -98,6 +112,7 @@ class Item(db.Model):
 
 
 class Category(db.Model):
+    """Creates category model plus methods"""
     # TODO make name unique
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
@@ -123,6 +138,7 @@ class Category(db.Model):
         return Category.query.filter_by(name=c_name).first()
 
     def is_author(self):
+        """Checks if the current user is the author"""
         if not current_user():
             return False
         return self.author_id == current_user().id
@@ -140,11 +156,13 @@ class Category(db.Model):
 
 
 def init_db():
+    """Install fresh copy of database"""
     db.drop_all()
     db.create_all()
 
 
 def populate_db():
+    """Loads dummy data into de db"""
     # create dummy user
     user = User('admin', 'admin@example.com', 'password')
     db.session.add(user)
@@ -175,14 +193,17 @@ def populate_command():
 # authentication helpers
 # ----------------------------
 def create_hash(plaintext_password):
+    """Create password hash to be stored in the database"""
     return hashpw(plaintext_password, gensalt())
 
 
 def check_hash(password_attempt, hashed):
+    """Checks the password hash against a test"""
     return hashpw(password_attempt, hashed) == hashed
 
 
 def current_user():
+    """Returns the logged user"""
     if 'email' not in session:
         return False
     return User.by_email(escape(session['email']))
@@ -202,6 +223,7 @@ def login_required(f):
 
 
 class SignupForm(Form):
+    """Sets form for signup"""
     name = StringField('Name', [validators.Length(min=4, max=25)])
     email = StringField('Email', [validators.Length(min=6, max=35)])
     password = PasswordField('Password', [
@@ -212,6 +234,7 @@ class SignupForm(Form):
 
 
 class LoginForm(Form):
+    """Sets form for login"""
     email = StringField('Email', [validators.Length(min=6, max=35)])
     password = PasswordField('Password', [
         validators.DataRequired()
@@ -219,10 +242,12 @@ class LoginForm(Form):
 
 
 class CategoryForm(Form):
+    """Sets form for category creation"""
     name = StringField('Name', [validators.DataRequired()])
 
 
 class ItemForm(Form):
+    """Sets form for item creation"""
     name = StringField('Name', [validators.DataRequired()])
     body = TextAreaField('Description')
     category_id = SelectField('Category', coerce=int)
@@ -234,6 +259,7 @@ class ItemForm(Form):
 
 @app.route('/')
 def show_categories():
+    """Show all categories and latest items"""
     categories = Category.query.all()
     items = Item.query.limit(10).all()
     u = current_user()
@@ -244,6 +270,7 @@ def show_categories():
 @app.route('/category/new', methods=['POST', 'GET'])
 @login_required
 def add_category():
+    """Creates a new category"""
     form = CategoryForm(request.form)
     error = None
     u = current_user()
@@ -262,6 +289,7 @@ def add_category():
 # TODO when removing a category also remove the items
 @login_required
 def delete_category(cat_id):
+    """Deletes a category"""
     cat = Category.by_id(cat_id)
     if not cat.is_author():
         flash('Only the author can delete this category')
@@ -275,6 +303,7 @@ def delete_category(cat_id):
 
 @app.route('/<c_name>')
 def show_items(c_name):
+    """Show items in a category"""
     c = Category.by_name(c_name)
     u = current_user()
     return render_template('category.html', category=c, user=u)
@@ -283,6 +312,7 @@ def show_items(c_name):
 @app.route('/<c_name>/item/new', methods=['GET', 'POST'])
 @login_required
 def add_item(c_name):
+    """Creates a new item"""
     form = ItemForm(request.form)
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
@@ -302,6 +332,7 @@ def add_item(c_name):
 @app.route('/item/delete/<int:item_id>')
 @login_required
 def delete_item(item_id):
+    """Deletes an item"""
     item = Item.by_id(item_id)
     c = item.get_category()
     u = current_user()
@@ -317,6 +348,7 @@ def delete_item(item_id):
 
 @app.route('/<c_name>/<item_name>')
 def show_item(c_name, item_name):
+    """Display item's details"""
     item = Item.by_name(item_name)
     return render_template(
         'item.html', c_name=c_name, item=item)
@@ -324,6 +356,7 @@ def show_item(c_name, item_name):
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
+    """Creates a new user"""
     form = SignupForm(request.form)
     if request.method == 'POST' and form.validate():
         user = User(form.name.data, form.email.data,
@@ -338,6 +371,7 @@ def signup():
 @app.route('/login', methods=['GET', 'POST'])
 # TODO Check if user already exists
 def login():
+    """Logs the user in"""
     form = LoginForm(request.form)
     if request.method == 'POST' and form.validate():
         u = User.by_email(form.email.data)
@@ -352,6 +386,7 @@ def login():
 
 @app.route('/logout')
 def logout():
+    """Logs the user out"""
     session.pop('email', None)
     flash('You were logged out')
     return redirect(url_for('show_categories'))
