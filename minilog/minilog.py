@@ -183,6 +183,9 @@ def current_user():
         return False
     return User.by_email(escape(session['email']))
 
+
+
+
 # ----------------------------
 # Forms
 # ----------------------------
@@ -228,26 +231,27 @@ def show_categories():
 
 
 @app.route('/category/new', methods=['POST', 'GET'])
+
 def add_category():
     form = CategoryForm(request.form)
     error = None
-    user = current_user()
-    if request.method == 'POST' and form.validate():
-        category = Category(form.name.data, user.id)
-        db.session.add(category)
-        db.session.commit()
-        flash('New category was successfully posted')
-        return redirect(url_for('show_categories'))
+    u = current_user()
+    if u:
+        if request.method == 'POST' and form.validate():
+            category = Category(form.name.data, u.id)
+            db.session.add(category)
+            db.session.commit()
+            flash('New category was successfully posted')
+            return redirect(url_for('show_categories'))
+        else:
+            return render_template('new_category.html', form=form)
     else:
-        if not user:
-            flash('Only logged users can create categories')
-            return redirect(url_for('login'))
-    return render_template('new_category.html', form=form)
+        flash('You need to login to change the content')
+        return redirect(url_for('login'))
 
 
 @app.route('/category/delete/<int:cat_id>')
 # TODO when removing a category also remove the items
-# TODO double check if the user is sure
 def delete_category(cat_id):
     cat = Category.by_id(cat_id)
     if not current_user() or not cat.is_author:
@@ -272,23 +276,26 @@ def show_items(c_name):
 
 
 @app.route('/<c_name>/item/new', methods=['GET', 'POST'])
+
 def add_item(c_name):
     form = ItemForm(request.form)
-    u = current_user()
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
-
-    if request.method == 'POST' and form.validate():
-        c_id = form.category_id.data
-        c = Category.by_id(c_id)
-        item = Item(form.name.data, form.body.data, c_id, u.id)
-        db.session.add(item)
-        db.session.commit()
-        flash('Item created successfully')
-        return render_template('category.html', category=c, user=u)
+    u = current_user()
+    if u:
+        if request.method == 'POST' and form.validate():
+            c_id = form.category_id.data
+            c = Category.by_id(c_id)
+            item = Item(form.name.data, form.body.data, c_id, u.id)
+            db.session.add(item)
+            db.session.commit()
+            flash('Item created successfully')
+            return render_template('category.html', category=c, user=u)
+        else:
+            return render_template('new_item.html', form=form, user=u)
     else:
-        return render_template(
-            'new_item.html', form=form, user=u)
+        flash('You need to login to change the content')
+        return redirect(url_for('login'))
 
 
 @app.route('/item/delete/<int:item_id>')
@@ -296,22 +303,22 @@ def delete_item(item_id):
     item = Item.by_id(item_id)
     c = item.get_category()
     u = current_user()
-    if not current_user() or not item.is_author:
+    if not current_user():
         flash('You have to login to delete an Item')
         return redirect(url_for('login'))
-    if not item.is_author():
-        flash('Only the author can delete this item')
-        return render_template('category.html', category=c, user=u)
-    else:
+    if item.is_author():
         db.session.delete(item)
         db.session.commit()
         flash('%s deleted successfully' % item.name)
         return render_template('category.html', category=c, user=u)
+    else:
+        flash('Only the author can delete this item')
+        return render_template('category.html', category=c, user=u)
+
 
 @app.route('/<c_name>/<item_name>')
 def show_item(c_name, item_name):
     item = Item.by_name(item_name)
-    u = current_user()
     return render_template(
         'show_item.html', c_name=c_name, item=item)
 

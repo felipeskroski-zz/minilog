@@ -1,1 +1,2 @@
 minilog
+virtualenv==12.0.7

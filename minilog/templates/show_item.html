@@ -5,7 +5,8 @@
   </a></h4>
   <h3>{{item.name}}</h3>
   <p>{{item.body}}</p>
-  {% if items %}
-    <a href="{{url_for('add_item', c_name=category.name)}}">Add item</a>
+  {% if item.is_author() %}
+    <a href="{{url_for('delete_item', item_id=item.id)}}">Delete</a> |
+    <a href="#">Edit</a>
   {% endif %}
 {% endblock %}
