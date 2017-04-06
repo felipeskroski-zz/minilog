@@ -1,6 +1,6 @@
 import os
 from datetime import datetime
-
+from functools import wraps
 from bcrypt import hashpw, gensalt
 from flask import (
     Flask, request, session, g, redirect, url_for,
@@ -184,8 +184,14 @@ def current_user():
     return User.by_email(escape(session['email']))
 
 
-
-
+def login_required(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        if not current_user():
+            flash('You need to login to change the content')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return wrapped
 # ----------------------------
 # Forms
 # ----------------------------
@@ -231,32 +237,27 @@ def show_categories():
 
 
 @app.route('/category/new', methods=['POST', 'GET'])
-
+@login_required
 def add_category():
     form = CategoryForm(request.form)
     error = None
     u = current_user()
-    if u:
-        if request.method == 'POST' and form.validate():
-            category = Category(form.name.data, u.id)
-            db.session.add(category)
-            db.session.commit()
-            flash('New category was successfully posted')
-            return redirect(url_for('show_categories'))
-        else:
-            return render_template('new_category.html', form=form)
+    if request.method == 'POST' and form.validate():
+        category = Category(form.name.data, u.id)
+        db.session.add(category)
+        db.session.commit()
+        flash('New category was successfully posted')
+        return redirect(url_for('show_categories'))
     else:
-        flash('You need to login to change the content')
-        return redirect(url_for('login'))
+        return render_template('new_category.html', form=form)
+
 
 
 @app.route('/category/delete/<int:cat_id>')
 # TODO when removing a category also remove the items
+@login_required
 def delete_category(cat_id):
     cat = Category.by_id(cat_id)
-    if not current_user() or not cat.is_author:
-        flash('You have to login to delete a category')
-        return redirect(url_for('login'))
     if not cat.is_author():
         flash('Only the author can delete this category')
         return redirect(url_for('show_categories'))
@@ -276,36 +277,30 @@ def show_items(c_name):
 
 
 @app.route('/<c_name>/item/new', methods=['GET', 'POST'])
-
+@login_required
 def add_item(c_name):
     form = ItemForm(request.form)
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     u = current_user()
-    if u:
-        if request.method == 'POST' and form.validate():
-            c_id = form.category_id.data
-            c = Category.by_id(c_id)
-            item = Item(form.name.data, form.body.data, c_id, u.id)
-            db.session.add(item)
-            db.session.commit()
-            flash('Item created successfully')
-            return render_template('category.html', category=c, user=u)
-        else:
-            return render_template('new_item.html', form=form, user=u)
+    if request.method == 'POST' and form.validate():
+        c_id = form.category_id.data
+        c = Category.by_id(c_id)
+        item = Item(form.name.data, form.body.data, c_id, u.id)
+        db.session.add(item)
+        db.session.commit()
+        flash('Item created successfully')
+        return render_template('category.html', category=c, user=u)
     else:
-        flash('You need to login to change the content')
-        return redirect(url_for('login'))
+        return render_template('new_item.html', form=form, user=u)
 
 
 @app.route('/item/delete/<int:item_id>')
+@login_required
 def delete_item(item_id):
     item = Item.by_id(item_id)
     c = item.get_category()
     u = current_user()
-    if not current_user():
-        flash('You have to login to delete an Item')
-        return redirect(url_for('login'))
     if item.is_author():
         db.session.delete(item)
         db.session.commit()
