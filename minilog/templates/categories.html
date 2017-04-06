@@ -1,0 +1,49 @@
+{% extends "layout.html" %}
+{% block body %}
+  <ul class="categories">
+  {% if categories %}
+    {% for c in categories %}
+      <li>
+        <h2>
+          <a href="{{url_for('show_items', c_name=c.name)}}">
+            {{ c.name }}
+          </a>
+          {% if c.author_id == user.id %}
+          <a href="{{url_for('delete_category', cat_id=c.id)}}">[X]</a>
+          {% endif %}
+        </h2>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li><em>Unbelievable.  No categories here so far</em></li>
+  {% endif %}
+  </ul>
+  {% if user %}
+    <a href="{{ url_for('add_category') }}">Add category</a>
+  {% endif %}
+
+  <ul class="items">
+  {% if items %}
+    {% for i in items %}
+      <li>
+        <h2>
+          {% set c_name = i.get_category().name %}
+          <a href="{{url_for('show_item', c_name=c_name, item_name=i.name)}}">
+            {{ i.name }} - {{ c_name }}
+          </a>
+          {% if i.author_id == user.id %}
+            <a href="{{url_for('delete_item', item_id=i.id)}}">[X]</a>
+          {% endif %}
+        </h2>
+      </li>
+    {% endfor %}
+  {% else %}
+    <li><em>Unbelievable.  No categories here so far</em></li>
+  {% endif %}
+  </ul>
+  {% if user %}
+    <a href="{{ url_for('add_item') }}">Add item</a>
+  {% endif %}
+
+
+{% endblock %}

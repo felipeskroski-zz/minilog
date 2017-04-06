@@ -88,6 +88,8 @@ class Item(db.Model):
 
     def is_author(self):
         """Check if current user is this item's author"""
+        if not current_user():
+            return False
         return self.author_id == current_user().id
 
     def get_category(self):
@@ -121,6 +123,8 @@ class Category(db.Model):
         return Category.query.filter_by(name=c_name).first()
 
     def is_author(self):
+        if not current_user():
+            return False
         return self.author_id == current_user().id
 
     def get_items(self):
@@ -231,9 +235,10 @@ class ItemForm(Form):
 @app.route('/')
 def show_categories():
     categories = Category.query.all()
+    items = Item.query.limit(10).all()
     u = current_user()
     return render_template(
-        'show_categories.html', categories=categories, user=u)
+        'categories.html', categories=categories, user=u, items=items)
 
 
 @app.route('/category/new', methods=['POST', 'GET'])
@@ -249,7 +254,7 @@ def add_category():
         flash('New category was successfully posted')
         return redirect(url_for('show_categories'))
     else:
-        return render_template('new_category.html', form=form)
+        return render_template('category_new.html', form=form)
 
 
 
@@ -272,8 +277,7 @@ def delete_category(cat_id):
 def show_items(c_name):
     c = Category.by_name(c_name)
     u = current_user()
-    return render_template(
-        'category.html', category=c, user=u)
+    return render_template('category.html', category=c, user=u)
 
 
 @app.route('/<c_name>/item/new', methods=['GET', 'POST'])
@@ -292,7 +296,7 @@ def add_item(c_name):
         flash('Item created successfully')
         return render_template('category.html', category=c, user=u)
     else:
-        return render_template('new_item.html', form=form, user=u)
+        return render_template('item_new.html', form=form, user=u)
 
 
 @app.route('/item/delete/<int:item_id>')
@@ -315,7 +319,7 @@ def delete_item(item_id):
 def show_item(c_name, item_name):
     item = Item.by_name(item_name)
     return render_template(
-        'show_item.html', c_name=c_name, item=item)
+        'item.html', c_name=c_name, item=item)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
