@@ -3,7 +3,15 @@
 
   <div class="panel">
     <p class="breadcrumbs"><a href="{{ url_for('show_categories') }}">Categories</a>/</p>
-    <h2>{{category.name}}</h2>
+    <h2>{{category.name}}
+      {% if category.author_id == user.id %}
+        <a href="{{url_for('delete_category', cat_id=category.id)}}"
+            onclick="return confirm('Are you sure you want to delete?')"
+            class='delete'>✕</a>
+        <a href="{{url_for('edit_category', c_id=category.id)}}"
+            class='delete'>✎</a>
+      {% endif %}
+    </h2>
     <ul class=items>
     {% if category.get_items()%}
       {% from "_partials.html" import item %}

@@ -66,12 +66,12 @@ a:hover{
   background: #aaa;
 }
 .delete{
-  color: #df517d;
-  margin-left: 5px;
+  color: #bbb;
+  margin-left: 2px;
   font-size: 14px;
 }
 .delete:hover{
-  color: red;
+  color: #df517d;
   text-decoration: none;
 }
 .breadcrumbs{

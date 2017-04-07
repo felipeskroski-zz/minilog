@@ -323,10 +323,27 @@ def add_category():
     else:
         return render_with_user('category_new.html', form=form)
 
+@app.route('/category/edit/<int:c_id>', methods=['POST', 'GET'])
+@login_required
+def edit_category(c_id):
+    """Updates a new category"""
+    form = CategoryForm(request.form)
+    c = Category.by_id(c_id)
+    error = None
+    u = current_user()
+    if request.method == 'POST' and form.validate():
+        c.name = form.name.data
+        db.session.query(Category).\
+            filter_by(id=c.id).update({"name": form.name.data})
+        db.session.commit()
+        flash('Category updated successfully')
+        return redirect(url_for('show_categories'))
+    else:
+        form.name.data = c.name
+        return render_with_user('category_new.html', form=form, c=c)
 
 
 @app.route('/category/delete/<int:cat_id>')
-# TODO when removing a category also remove the items
 @login_required
 def delete_category(cat_id):
     """Deletes a category"""

@@ -4,10 +4,12 @@
   <h2>New category</h2>
   {% from "_formhelpers.html" import render_field %}
   <form method=post>
-    <dl>
       {{ render_field(form.name) }}
-    </dl>
-    <p><input type=submit value=Done class='btn'>
+
+    <p>
+      <a href="javascript:history.back()" class='btn cancel'>Cancel</a>
+      <input type=submit value=Done class='btn'>
+    </p>
   </form>
   </div>
 {% endblock %}

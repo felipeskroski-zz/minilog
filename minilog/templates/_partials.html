@@ -6,9 +6,11 @@
     </a>
     <em>({{i.get_category().name}})</em>
     {% if i.author_id == user.id %}
-      <a href="{{url_for('delete_item', item_id=i.id)}}"
-          onclick="return confirm('Are you sure you want to delete?')"
-          class='delete'>✕</a>
+    <a href="{{url_for('delete_item', item_id=i.id)}}"
+        onclick="return confirm('Are you sure you want to delete?')"
+        class='delete'>✕</a>
+    <a href="{{url_for('edit_category', c_id=i.id)}}"
+        class='delete'>✎</a>
     {% endif %}
   </p>
 </li>
@@ -20,7 +22,11 @@
       {{ c.name }}
     </a>
     {% if c.author_id == user.id %}
-    <a href="{{url_for('delete_category', cat_id=c.id)}}" class='delete' onclick="return confirm('Are you sure you want to delete?')">✕</a>
+    <a href="{{url_for('delete_category', cat_id=c.id)}}"
+        onclick="return confirm('Are you sure you want to delete?')"
+        class='delete'>✕</a>
+    <a href="{{url_for('edit_category', c_id=c.id)}}"
+        class='delete'>✎</a>
     {% endif %}
   </p>
 </li>
