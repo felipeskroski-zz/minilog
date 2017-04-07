@@ -1,14 +1,23 @@
 {% extends "layout.html" %}
 {% block body %}
-  <h2>New item</h2>
-  {% from "_formhelpers.html" import render_field, category_select %}
-  <form method=post>
-    <dl>
+  <div class="panel">
+    <h2>New item</h2>
+    {% from "_formhelpers.html" import render_field, category_select %}
+    <form method=post>
+      <div class="form-field">
+      <label for="category_id">Category</label>
+      {{ form.category_id }}
+      </div>
       {{ render_field(form.name) }}
       {{ render_field(form.body) }}
-    </dl>
-    {{ form.category_id }}
-    {{ form.author_id }}
-    <p><input type=submit value=Add>
-  </form>
+
+      {{ form.author_id }}
+
+      <p>
+        <a href="javascript:history.back()" class='btn cancel'>Cancel</a>
+        <input type=submit value=Add class="btn">
+      </p>
+
+    </form>
+  </div>
 {% endblock %}

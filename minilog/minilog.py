@@ -4,7 +4,7 @@ from functools import wraps
 from bcrypt import hashpw, gensalt
 from flask import (
     Flask, request, session, g, redirect, url_for,
-    abort, render_template, flash, escape
+    abort, render_template, flash, escape, jsonify
 )
 from wtforms import (
     Form, BooleanField, StringField, PasswordField, SelectField, HiddenField,
@@ -113,12 +113,13 @@ class Item(db.Model):
 
 class Category(db.Model):
     """Creates category model plus methods"""
-    # TODO make name unique
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship(
         'User', backref=db.backref('category', lazy='dynamic'))
+    # Whenever you delete a category delete all it's children items
+    items = db.relationship("Item", cascade="delete")
 
     def __init__(self, name, author_id):
         self.name = name
@@ -148,13 +149,9 @@ class Category(db.Model):
         return Item.query.filter_by(category_id=self.id).all()
 
 
-
-
 # ----------------------------
 # Database config
 # ----------------------------
-
-
 def init_db():
     """Install fresh copy of database"""
     db.drop_all()
@@ -162,18 +159,31 @@ def init_db():
 
 
 def populate_db():
-    """Loads dummy data into de db"""
+    """Loads mock data into de db"""
     # create dummy user
     user = User('admin', 'admin@example.com', 'password')
     db.session.add(user)
     db.session.commit()
     # create dummy categories
-    category1 = Category('Sports', user.id)
-    category2 = Category('Clothing', user.id)
+    category1 = Category('Basketball', user.id)
+    category2 = Category('Camping', user.id)
     db.session.add(category1)
     db.session.add(category2)
     db.session.commit()
-
+    # create dummy items
+    item1 = Item(
+        'Ball', 'Perfectly round and bouncier than ever',
+        category1.id, user.id)
+    item2 = Item(
+        'Shoes', 'Super light and comfortable',
+        category1.id, user.id)
+    item3 = Item(
+        'Tent', 'Good shelter even on the rainy days',
+        category2.id, user.id)
+    db.session.add(item1)
+    db.session.add(item2)
+    db.session.add(item3)
+    db.session.commit()
 
 
 @app.cli.command('initdb')
@@ -181,6 +191,7 @@ def initdb_command():
     """Terminal command: Initializes the database."""
     init_db()
     print('Initialized the database.')
+
 
 @app.cli.command('populatedb')
 def populate_command():
@@ -217,6 +228,10 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return wrapped
+
+def render_with_user(*args, **kwargs):
+    u = current_user()
+    return render_template(user=u, *args, **kwargs)
 # ----------------------------
 # Forms
 # ----------------------------
@@ -262,9 +277,34 @@ def show_categories():
     """Show all categories and latest items"""
     categories = Category.query.all()
     items = Item.query.limit(10).all()
-    u = current_user()
-    return render_template(
-        'categories.html', categories=categories, user=u, items=items)
+    return render_with_user(
+        'categories.html', categories=categories, items=items)
+
+
+
+@app.route('/catalog.json')
+def json_categories():
+    categories = Category.query.all()
+    items = Item.query.limit(10).all()
+    names = []
+    for c in categories:
+        items=[]
+        for i in c.get_items():
+            items.append({
+                'id': i.id,
+                'name': i.name,
+                'description': i.body,
+                'category_id': i.category_id,
+                'author_id': i.author_id,
+                'pub_date': i.pub_date,
+            })
+        names.append({
+            'id': c.id,
+            'category': c.name,
+            'author_id' : c.author_id,
+            'items': items
+        })
+    return jsonify(categories=names)
 
 
 @app.route('/category/new', methods=['POST', 'GET'])
@@ -281,7 +321,7 @@ def add_category():
         flash('New category was successfully posted')
         return redirect(url_for('show_categories'))
     else:
-        return render_template('category_new.html', form=form)
+        return render_with_user('category_new.html', form=form)
 
 
 
@@ -305,8 +345,7 @@ def delete_category(cat_id):
 def show_items(c_name):
     """Show items in a category"""
     c = Category.by_name(c_name)
-    u = current_user()
-    return render_template('category.html', category=c, user=u)
+    return render_with_user('category.html', category=c)
 
 
 @app.route('/item/new', methods=['GET', 'POST'])
@@ -325,13 +364,13 @@ def add_item():
         db.session.add(item)
         db.session.commit()
         flash('Item created successfully')
-        return render_template('category.html', category=c, user=u)
+        return render_with_user('category.html', category=c)
     else:
         c_id = request.args.get('c_id')
         if c_id:
             form.category_id.data = int(c_id)
-        return render_template(
-            'item_new.html', form=form, user=u)
+        return render_with_user(
+            'item_new.html', form=form)
 
 
 @app.route('/item/delete/<int:item_id>')
@@ -340,22 +379,21 @@ def delete_item(item_id):
     """Deletes an item"""
     item = Item.by_id(item_id)
     c = item.get_category()
-    u = current_user()
     if item.is_author():
         db.session.delete(item)
         db.session.commit()
         flash('%s deleted successfully' % item.name)
-        return render_template('category.html', category=c, user=u)
+        return render_with_user('category.html', category=c)
     else:
         flash('Only the author can delete this item')
-        return render_template('category.html', category=c, user=u)
+        return render_with_user('category.html', category=c)
 
 
 @app.route('/<c_name>/<item_name>')
 def show_item(c_name, item_name):
     """Display item's details"""
     item = Item.by_name(item_name)
-    return render_template(
+    return render_with_user(
         'item.html', c_name=c_name, item=item)
 
 
@@ -370,7 +408,7 @@ def signup():
         db.session.commit()
         flash('Thanks for registering')
         return redirect(url_for('show_categories'))
-    return render_template('signup.html', form=form)
+    return render_with_user('signup.html', form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])

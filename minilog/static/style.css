@@ -1,18 +1,140 @@
-body            { font-family: sans-serif; background: #eee; }
-a, h1, h2       { color: #377ba8; }
-h1, h2          { font-family: 'Georgia', serif; margin: 0; }
-h1              { border-bottom: 2px solid #eee; }
-h2              { font-size: 1.2em; }
+body{
+  font-family: sans-serif;
+  font-family: 'Open Sans', sans-serif;
+  font-family: 'Libre Baskerville', serif;
+  background: #fafafa;
+  color: #444;
+  max-width: 720px;
+  margin: 0 auto;
+}
+header{
+  display: flex;
+  flex-direction: row;
+}
+.page{
+  display: flex;
+  flex-direction: row;
+}
+h1,h2,h3,h4{
+  color: #666;
+  font-family: 'Libre Franklin', sans-serif;
+}
+h1{
+  font-size: 48px;
+  font-family: 'Libre Franklin', sans-serif;
+  flex: 1;
+}
+h1 a{
+  color: #666;
+}
+.metanav{
+  flex: 1;
+  align-self: flex-start;
+  text-align: right;
+  margin-top: 20px;
+  font-family: 'Libre Franklin', sans-serif;
+}
 
-.page           { margin: 2em auto; width: 35em; border: 5px solid #ccc;
-                  padding: 0.8em; background: white; }
-.entries        { list-style: none; margin: 0; padding: 0; }
-.entries li     { margin: 0.8em 1.2em; }
-.entries li h2  { margin-left: -1em; }
-.add-entry      { font-size: 0.9em; border-bottom: 1px solid #ccc; }
-.add-entry dl   { font-weight: bold; }
-.metanav        { text-align: right; font-size: 0.8em; padding: 0.3em;
-                  margin-bottom: 1em; background: #fafafa; }
-.flash          { background: #cee5F5; padding: 0.5em;
-                  border: 1px solid #aacbe2; }
-.error          { background: #f0d6d6; padding: 0.5em; }
+a{
+  color:#1ABC9C;
+  text-decoration: none;
+}
+
+a:hover{
+  color:#149184;
+  text-decoration: underline;
+}
+
+.btn{
+  color: white;
+  background: #1ABC9C;
+  padding: 5px 14px;
+  font-size: 14px;
+  font-family: 'Libre Franklin', sans-serif;
+  border-radius: 3px;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 10px;
+  border: 0;
+}
+.btn:hover{
+  color: white;
+  background: #149184;
+  text-decoration: none;
+}
+.btn.cancel{
+  background: #aaa;
+}
+.delete{
+  color: #df517d;
+  margin-left: 5px;
+  font-size: 14px;
+}
+.delete:hover{
+  color: red;
+  text-decoration: none;
+}
+.breadcrumbs{
+  margin-bottom: -14px;
+}
+
+ul{
+  margin: 0;
+  list-style: none;
+  padding: 0;
+}
+li{
+  margin: 0;
+}
+.panel{
+  flex: 1;
+}
+
+.form-field{
+  margin-top: 20px;
+}
+form{
+  flex: 1;
+  background: white;
+  padding: 0 20px 20px;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+}
+form .btn{
+  padding: 12px 25px;
+  font-size: 16px;
+}
+label{
+  display: block;
+  font-family: 'Libre Franklin', sans-serif;
+  margin-bottom: 5px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #666;
+}
+input[type='text'], input[type='password'], textarea{
+  padding: 10px;
+  border-radius: 2px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  font-family: 'Libre Franklin', sans-serif;
+  width: 50%;
+  background: #fafafa;
+}
+textarea{
+  height: 200px;
+}
+select{
+  height: 30px;
+  font-size: 14px;
+  background: white;
+  width: 50%;
+}
+.flash{
+  flex: 1;
+  background: #e0e9e7;
+  padding: 10px;
+  border-radius: 3px;
+  border: 1px solid #c7d8d5;
+  color: #5f9f92;
+}

@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+<div class="panel">
   <h2>Login</h2>
   {% from "_formhelpers.html" import render_field %}
   <form method=post>
@@ -7,6 +8,7 @@
       {{ render_field(form.email) }}
       {{ render_field(form.password) }}
     </dl>
-    <p><input type=submit value=Login>
+    <p><input type=submit value=Login class='btn'>
   </form>
+</div>
 {% endblock %}

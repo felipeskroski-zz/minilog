@@ -1,49 +1,35 @@
 {% extends "layout.html" %}
 {% block body %}
+  <div class="panel">
+  <h2>Categories</h2>
   <ul class="categories">
+  {% from "_partials.html" import category, item %}
   {% if categories %}
     {% for c in categories %}
-      <li>
-        <h2>
-          <a href="{{url_for('show_items', c_name=c.name)}}">
-            {{ c.name }}
-          </a>
-          {% if c.author_id == user.id %}
-          <a href="{{url_for('delete_category', cat_id=c.id)}}">[X]</a>
-          {% endif %}
-        </h2>
-      </li>
+      {{ category(c, user) }}
     {% endfor %}
   {% else %}
     <li><em>Unbelievable.  No categories here so far</em></li>
   {% endif %}
   </ul>
   {% if user %}
-    <a href="{{ url_for('add_category') }}">Add category</a>
+    <a href="{{ url_for('add_category') }}" class='btn'>Add category</a>
   {% endif %}
-
+</div>
+  <div class="panel">
+  <h2>Latest items</h2>
   <ul class="items">
   {% if items %}
     {% for i in items %}
-      <li>
-        <h2>
-          {% set c_name = i.get_category().name %}
-          <a href="{{url_for('show_item', c_name=c_name, item_name=i.name)}}">
-            {{ i.name }} - {{ c_name }}
-          </a>
-          {% if i.author_id == user.id %}
-            <a href="{{url_for('delete_item', item_id=i.id)}}">[X]</a>
-          {% endif %}
-        </h2>
-      </li>
+      {{ item(i, user) }}
     {% endfor %}
   {% else %}
     <li><em>Unbelievable.  No categories here so far</em></li>
   {% endif %}
   </ul>
   {% if user %}
-    <a href="{{ url_for('add_item') }}">Add item</a>
+    <a href="{{ url_for('add_item') }}" class='btn'>Add item</a>
   {% endif %}
-
+</div>
 
 {% endblock %}

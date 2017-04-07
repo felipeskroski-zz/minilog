@@ -1,25 +1,29 @@
 <!doctype html>
 <head>
   <title>Minilog</title>
+  <link href="https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700|Libre+Franklin:300,700" rel="stylesheet">
   <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class=page>
-    <h1><a href="{{ url_for('show_categories') }}">Minilog</a></h1>
+  <header>
+    <h1><a href="{{ url_for('show_categories') }}">Minilog.</a></h1>
     <div class=metanav>
-    {% if session.email %}
-      {% if user %}
-        Hi {{user.name}},
+      {% if session.email %}
+        {% if user %}
+          Hi {{user.name}},
+        {% endif %}
+        <a href="{{ url_for('logout') }}">Log out</a>
+      {% else %}
+        <a href="{{ url_for('login') }}">Login</a> |
+        <a href="{{ url_for('signup') }}">Signup</a>
       {% endif %}
-      <a href="{{ url_for('logout') }}">Log out</a>
-    {% else %}
-      <a href="{{ url_for('login') }}">Login</a> |
-      <a href="{{ url_for('signup') }}">Signup</a>
-    {% endif %}
     </div>
-    {% for message in get_flashed_messages() %}
-      <div class=flash>{{ message }}</div>
-    {% endfor %}
+
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class=flash><em>{{ message }}</em></div>
+  {% endfor %}
+  <div class=page>
     {% block body %}{% endblock %}
   </div>
 </body>

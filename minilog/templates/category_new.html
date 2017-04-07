@@ -1,11 +1,13 @@
 {% extends "layout.html" %}
 {% block body %}
+  <div class="panel">
   <h2>New category</h2>
   {% from "_formhelpers.html" import render_field %}
   <form method=post>
     <dl>
       {{ render_field(form.name) }}
     </dl>
-    <p><input type=submit value=Login>
+    <p><input type=submit value=Done class='btn'>
   </form>
+  </div>
 {% endblock %}
