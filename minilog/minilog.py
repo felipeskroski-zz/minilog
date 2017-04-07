@@ -323,16 +323,14 @@ def add_category():
     else:
         return render_with_user('category_new.html', form=form)
 
+
 @app.route('/category/edit/<int:c_id>', methods=['POST', 'GET'])
 @login_required
 def edit_category(c_id):
-    """Updates a new category"""
+    """Updates a category"""
     form = CategoryForm(request.form)
     c = Category.by_id(c_id)
-    error = None
-    u = current_user()
     if request.method == 'POST' and form.validate():
-        c.name = form.name.data
         db.session.query(Category).\
             filter_by(id=c.id).update({"name": form.name.data})
         db.session.commit()
@@ -340,7 +338,7 @@ def edit_category(c_id):
         return redirect(url_for('show_categories'))
     else:
         form.name.data = c.name
-        return render_with_user('category_new.html', form=form, c=c)
+        return render_with_user('category_new.html', form=form)
 
 
 @app.route('/category/delete/<int:cat_id>')
@@ -372,7 +370,6 @@ def add_item():
     form = ItemForm(request.form)
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
-
     u = current_user()
     if request.method == 'POST' and form.validate():
         c_id = form.category_id.data
@@ -389,6 +386,30 @@ def add_item():
         return render_with_user(
             'item_new.html', form=form)
 
+
+@app.route('/item/edit/<int:i_id>', methods=['POST', 'GET'])
+@login_required
+def edit_item(i_id):
+    """Updates an item"""
+    form = ItemForm(request.form)
+    categories = Category.query.order_by('name').all()
+    form.category_id.choices = [(c.id, c.name) for c in categories]
+    i = Item.by_id(i_id)
+    if request.method == 'POST' and form.validate():
+        db.session.query(Item).\
+            filter_by(id=i.id).update({
+                "name": form.name.data,
+                "body": form.body.data,
+                "category_id": form.category_id.data
+            })
+        db.session.commit()
+        flash('Item updated successfully')
+        return redirect(url_for('show_categories'))
+    else:
+        form.name.data = i.name
+        form.body.data = i.body
+        form.category_id.data = i.category_id
+        return render_with_user('item_new.html', form=form)
 
 @app.route('/item/delete/<int:item_id>')
 @login_required
