@@ -276,7 +276,7 @@ class ItemForm(Form):
 def show_categories():
     """Show all categories and latest items"""
     categories = Category.query.all()
-    items = Item.query.limit(10).all()
+    items = Item.query.order_by('pub_date desc').limit(10).all()
     return render_with_user(
         'categories.html', categories=categories, items=items)
 
