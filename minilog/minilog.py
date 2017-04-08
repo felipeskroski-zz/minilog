@@ -127,6 +127,29 @@ def show_items(c_name):
     c = Category.by_name(c_name)
     return render_with_user('category.html', category=c)
 
+@app.route('/<c_name>/items.json')
+def json_category(c_name):
+    c = Category.by_name(c_name)
+    items = Item.query.filter_by(category_id=c.id).all()
+    cat = []
+    items=[]
+    for i in c.get_items():
+        items.append({
+            'id': i.id,
+            'name': i.name,
+            'description': i.body,
+            'category_id': i.category_id,
+            'author_id': i.author_id,
+            'pub_date': i.pub_date,
+        })
+    cat.append({
+        'id': c.id,
+        'category': c.name,
+        'author_id' : c.author_id,
+        'items': items
+    })
+    return jsonify(category=cat)
+
 
 @app.route('/item/new', methods=['GET', 'POST'])
 @login_required
@@ -198,6 +221,19 @@ def show_item(c_name, item_name):
     item = Item.by_name(item_name)
     return render_with_user(
         'item.html', c_name=c_name, item=item)
+
+@app.route('/<c_name>/<item_name>/item.json')
+def json_item(c_name, item_name):
+    i = Item.by_name(item_name)
+    item = {
+        'id': i.id,
+        'name': i.name,
+        'description': i.body,
+        'category_id': i.category_id,
+        'author_id': i.author_id,
+        'pub_date': i.pub_date,
+    }
+    return jsonify(item=item)
 
 
 @app.route('/signup', methods=['GET', 'POST'])
