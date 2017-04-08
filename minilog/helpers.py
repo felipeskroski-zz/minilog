@@ -2,6 +2,7 @@ from bcrypt import hashpw, gensalt
 from flask import (
     session
 )
+from functools import wraps
 from wtforms import (
     Form, BooleanField, StringField, PasswordField, SelectField, HiddenField,
     TextAreaField, validators
@@ -16,7 +17,6 @@ def create_hash(plaintext_password):
 def check_hash(password_attempt, hashed):
     """Checks the password hash against a test"""
     return hashpw(password_attempt, hashed) == hashed
-
 
 # ----------------------------
 # Forms
