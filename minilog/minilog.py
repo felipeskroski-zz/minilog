@@ -5,11 +5,13 @@ from flask import (
     Flask, request, session, g, redirect, url_for,
     abort, render_template, flash, escape, jsonify
 )
+from werkzeug.utils import secure_filename
 from models import (
     User, Item, Category, create_hash, check_hash,
     init_db, populate_db, initdb_command, populate_command,
     current_user, db
 )
+
 from helpers import (
     SignupForm, LoginForm, ItemForm, CategoryForm
 )
@@ -80,7 +82,7 @@ def add_category():
     form = CategoryForm(request.form)
     error = None
     u = current_user()
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         category = Category(form.name.data, u.id)
         db.session.add(category)
         db.session.commit()
@@ -96,7 +98,7 @@ def edit_category(c_id):
     """Updates a category"""
     form = CategoryForm(request.form)
     c = Category.by_id(c_id)
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         db.session.query(Category).\
             filter_by(id=c.id).update({"name": form.name.data})
         db.session.commit()
@@ -156,11 +158,14 @@ def json_category(c_name):
 @login_required
 def add_item():
     """Creates a new item"""
-    form = ItemForm(request.form)
+    form = ItemForm()
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     u = current_user()
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
+        f = form.upload.data
+        filename = secure_filename(f.filename)
+        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         c_id = form.category_id.data
         c = Category.by_id(c_id)
         item = Item(form.name.data, form.body.data, c_id, u.id)
@@ -184,7 +189,7 @@ def edit_item(i_id):
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     i = Item.by_id(i_id)
-    if request.method == 'POST' and form.validate():
+    if form.validate_on_submit():
         db.session.query(Item).\
             filter_by(id=i.id).update({
                 "name": form.name.data,

@@ -3,15 +3,13 @@
   <div class="panel">
     <h2>New item</h2>
     {% from "_formhelpers.html" import render_field, category_select %}
-    <form method=post>
+    <form method=post enctype="multipart/form-data">
       {{ form.csrf_token }}
-      <div class="form-field">
-      <label for="category_id">Category</label>
-      {{ form.category_id }}
-      </div>
+      {{ form.hidden_tag() }}
+      {{ render_field(form.category_id) }}
       {{ render_field(form.name) }}
       {{ render_field(form.body) }}
-
+      {{ render_field(form.upload) }}
       {{ form.author_id }}
 
       <p>

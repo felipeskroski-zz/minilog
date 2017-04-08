@@ -8,7 +8,7 @@ from wtforms import (
     TextAreaField, validators
 )
 from flask_wtf import FlaskForm
-from flask_wtf.file import FileField, FileRequired
+from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 
 def create_hash(plaintext_password):
@@ -52,3 +52,4 @@ class ItemForm(FlaskForm):
     name = StringField('Name', [validators.DataRequired()])
     body = TextAreaField('Description')
     category_id = SelectField('Category', coerce=int)
+    upload = FileField()

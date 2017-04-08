@@ -8,6 +8,7 @@ app.config.update(dict(
     SQLALCHEMY_DATABASE_URI='sqlite:////%s' % os.path.join(app.root_path, 'minilog.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS = False,
     SECRET_KEY='A0Zr98j/3yX R~XHH!jmN]LWX/,?RT',
+    UPLOAD_FOLDER = os.path.join(app.root_path, 'static/uploads'),
 ))
 
 # set the secret key.  keep this really secret:
