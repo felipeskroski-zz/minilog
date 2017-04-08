@@ -4,10 +4,11 @@
   <h2>Login</h2>
   {% from "_formhelpers.html" import render_field %}
   <form method=post>
-    <dl>
-      {{ render_field(form.email) }}
-      {{ render_field(form.password) }}
-    </dl>
+    {{ form.csrf_token }}
+
+    {{ render_field(form.email) }}
+    {{ render_field(form.password) }}
+
     <p><input type=submit value=Login class='btn'>
   </form>
 </div>

@@ -4,6 +4,7 @@
   <h2>New category</h2>
   {% from "_formhelpers.html" import render_field %}
   <form method=post>
+      {{ form.csrf_token }}
       {{ render_field(form.name) }}
     <p>
       <a href="javascript:history.back()" class='btn cancel'>Cancel</a>

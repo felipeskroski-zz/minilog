@@ -5,17 +5,18 @@ from flask import (
     Flask, request, session, g, redirect, url_for,
     abort, render_template, flash, escape, jsonify
 )
-
 from models import (
     User, Item, Category, create_hash, check_hash,
     init_db, populate_db, initdb_command, populate_command,
-    current_user
+    current_user, db
 )
 from helpers import (
-    SignupForm, LoginForm, CategoryForm, ItemForm
+    SignupForm, LoginForm, ItemForm, CategoryForm
 )
 from config import app
 
+
+# ----------------------------
 
 # ----------------------------
 # authentication helpers
