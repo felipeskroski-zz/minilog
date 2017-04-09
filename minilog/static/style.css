@@ -40,6 +40,13 @@ a{
   text-decoration: none;
 }
 
+em{
+  color: #888;
+  margin-top: 10px;
+  font-size: 12px;
+  display: block;
+}
+
 a:hover{
   color:#149184;
   text-decoration: underline;
