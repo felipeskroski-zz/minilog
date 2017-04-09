@@ -19,8 +19,6 @@ from config import app
 
 
 # ----------------------------
-
-# ----------------------------
 # authentication helpers
 # ----------------------------
 def login_required(f):
@@ -168,7 +166,7 @@ def add_item():
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         c_id = form.category_id.data
         c = Category.by_id(c_id)
-        item = Item(form.name.data, form.body.data, c_id, u.id)
+        item = Item(form.name.data, form.body.data, c_id, u.id, filename)
         db.session.add(item)
         db.session.commit()
         flash('Item created successfully')
@@ -185,16 +183,21 @@ def add_item():
 @login_required
 def edit_item(i_id):
     """Updates an item"""
-    form = ItemForm(request.form)
+    form = ItemForm()
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     i = Item.by_id(i_id)
     if form.validate_on_submit():
+        i.delete_image()
+        f = form.upload.data
+        filename = secure_filename(f.filename)
+        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         db.session.query(Item).\
             filter_by(id=i.id).update({
                 "name": form.name.data,
                 "body": form.body.data,
-                "category_id": form.category_id.data
+                "category_id": form.category_id.data,
+                "image": filename
             })
         db.session.commit()
         flash('Item updated successfully')
@@ -203,7 +206,7 @@ def edit_item(i_id):
         form.name.data = i.name
         form.body.data = i.body
         form.category_id.data = i.category_id
-        return render_with_user('item_new.html', form=form)
+        return render_with_user('item_new.html', form=form, i=i)
 
 @app.route('/item/delete/<int:item_id>')
 @login_required

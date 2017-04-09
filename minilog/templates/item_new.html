@@ -10,6 +10,9 @@
       {{ render_field(form.name) }}
       {{ render_field(form.body) }}
       {{ render_field(form.upload) }}
+      {% if i and i.image %}
+        <img src="{{i.get_image()}}" height="100"/>
+      {% endif %}
       <em class="small"> Max file size is 2mb</em>
       {{ form.author_id }}
 

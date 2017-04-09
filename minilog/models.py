@@ -60,6 +60,7 @@ class Item(db.Model):
     name = db.Column(db.String(80))
     body = db.Column(db.Text)
     pub_date = db.Column(db.DateTime)
+    image = db.Column(db.String)
     author_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     author = db.relationship(
         'User', backref=db.backref('item', lazy='dynamic'))
@@ -67,14 +68,16 @@ class Item(db.Model):
     category = db.relationship(
         'Category', backref=db.backref('item', lazy='dynamic'))
 
-    def __init__(self, name, body, category_id, author_id, pub_date=None):
+    def __init__(self, name, body, category_id, author_id, image, pub_date=None):
         self.name = name
         self.body = body
         if pub_date is None:
             pub_date = datetime.utcnow()
         self.pub_date = pub_date
+        self.image = image
         self.category_id = category_id
         self.author_id = author_id
+
 
     def __repr__(self):
         return '<Post %r>' % self.title
@@ -98,6 +101,17 @@ class Item(db.Model):
     def get_category(self):
         """Gets this item's category"""
         return Category.query.filter_by(id=self.category_id).first()
+
+    def get_image(self):
+        """Gets this item's image"""
+        return "/static/uploads/%s" % self.image
+
+    def delete_image(self):
+        """Removes item's image"""
+        if self.image:
+            return os.remove(
+                os.path.join(app.config['UPLOAD_FOLDER'], self.image))
+        return False
 
 
 class Category(db.Model):
