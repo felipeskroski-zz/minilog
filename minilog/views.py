@@ -111,14 +111,17 @@ def edit_category(c_id):
 @login_required
 def delete_category(cat_id):
     """Deletes a category"""
-    cat = Category.by_id(cat_id)
-    if not cat.is_author():
+    c = Category.by_id(cat_id)
+    items = Item.query.filter_by(category_id=c.id).all()
+    if not c.is_author():
         flash('Only the author can delete this category')
         return redirect(url_for('show_categories'))
     else:
-        db.session.delete(cat)
+        for i in items:
+            i.delete_image()
+        db.session.delete(c)
         db.session.commit()
-        flash('%s category deleted successfully' % cat.name)
+        flash('%s category deleted successfully' % c.name)
         return redirect(url_for('show_categories'))
 
 
@@ -166,8 +169,8 @@ def add_item():
         f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         c_id = form.category_id.data
         c = Category.by_id(c_id)
-        item = Item(form.name.data, form.body.data, c_id, u.id, filename)
-        db.session.add(item)
+        i = Item(form.name.data, form.body.data, c_id, u.id, filename)
+        db.session.add(i)
         db.session.commit()
         flash('Item created successfully')
         return render_with_user('category.html', category=c)
@@ -212,12 +215,13 @@ def edit_item(i_id):
 @login_required
 def delete_item(item_id):
     """Deletes an item"""
-    item = Item.by_id(item_id)
-    c = item.get_category()
-    if item.is_author():
-        db.session.delete(item)
+    i = Item.by_id(item_id)
+    c = i.get_category()
+    if i.is_author():
+        i.delete_image()
+        db.session.delete(i)
         db.session.commit()
-        flash('%s deleted successfully' % item.name)
+        flash('%s deleted successfully' % i.name)
         return render_with_user('category.html', category=c)
     else:
         flash('Only the author can delete this item')
@@ -227,14 +231,14 @@ def delete_item(item_id):
 @app.route('/<c_name>/<item_name>')
 def show_item(c_name, item_name):
     """Display item's details"""
-    item = Item.by_name(item_name)
+    i = Item.by_name(item_name)
     return render_with_user(
-        'item.html', c_name=c_name, item=item)
+        'item.html', c_name=c_name, item=i)
 
 @app.route('/<c_name>/<item_name>/item.json')
 def json_item(c_name, item_name):
     i = Item.by_name(item_name)
-    item = {
+    item_json = {
         'id': i.id,
         'name': i.name,
         'description': i.body,
@@ -242,7 +246,7 @@ def json_item(c_name, item_name):
         'author_id': i.author_id,
         'pub_date': i.pub_date,
     }
-    return jsonify(item=item)
+    return jsonify(item=item_json)
 
 
 @app.route('/signup', methods=['GET', 'POST'])

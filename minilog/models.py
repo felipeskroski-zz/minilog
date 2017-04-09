@@ -68,7 +68,7 @@ class Item(db.Model):
     category = db.relationship(
         'Category', backref=db.backref('item', lazy='dynamic'))
 
-    def __init__(self, name, body, category_id, author_id, pub_date=None, image=None):
+    def __init__(self, name, body, category_id, author_id, image=None, pub_date=None):
         self.name = name
         self.body = body
         if pub_date is None:
@@ -111,8 +111,9 @@ class Item(db.Model):
     def delete_image(self):
         """Removes item's image"""
         if self.image:
-            return os.remove(
-                os.path.join(app.config['UPLOAD_FOLDER'], self.image))
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], self.image)
+            if os.path.isfile(image_path):
+                return os.remove(image_path)
         return False
 
 
