@@ -104,7 +104,9 @@ class Item(db.Model):
 
     def get_image(self):
         """Gets this item's image"""
-        return "/static/uploads/%s" % self.image
+        if self.image:
+            return "/static/uploads/%s" % self.image
+        return False
 
     def delete_image(self):
         """Removes item's image"""

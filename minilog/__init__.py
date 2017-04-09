@@ -1,1 +1,1 @@
-from .minilog import app
+from .views import app
