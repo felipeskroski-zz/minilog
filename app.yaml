@@ -1,3 +1,4 @@
+entrypoint: export FLASK_APP=minilog\flask initdb\flask populatedb\flask run
 runtime: python27
 api_version: 1
 threadsafe: yes
