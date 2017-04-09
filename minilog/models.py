@@ -68,7 +68,7 @@ class Item(db.Model):
     category = db.relationship(
         'Category', backref=db.backref('item', lazy='dynamic'))
 
-    def __init__(self, name, body, category_id, author_id, image, pub_date=None):
+    def __init__(self, name, body, category_id, author_id, pub_date=None, image=None):
         self.name = name
         self.body = body
         if pub_date is None:
