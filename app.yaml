@@ -8,7 +8,7 @@ handlers:
   static_dir: static
 
 - url: /.*
-  script: minilog.app
+  script: minilog.views.app
 
 - url: /favicon\.ico
   static_files: static/img/favicon.ico
