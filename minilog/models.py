@@ -9,14 +9,15 @@ from helpers import check_hash, create_hash
 
 from config import app
 
-
 db = SQLAlchemy(app)
+
 
 def current_user():
     """Returns the logged user"""
     if 'email' not in session:
         return False
     return User.by_email(escape(session['email']))
+
 
 class User(db.Model):
     """
@@ -71,7 +72,8 @@ class Item(db.Model):
     category = db.relationship(
         'Category', backref=db.backref('item', lazy='dynamic'))
 
-    def __init__(self, name, body, category_id, author_id, image=None, pub_date=None):
+    def __init__(self, name, body, category_id,
+                 author_id, image=None, pub_date=None):
         self.name = name
         self.body = body
         if pub_date is None:
@@ -80,7 +82,6 @@ class Item(db.Model):
         self.image = image
         self.category_id = category_id
         self.author_id = author_id
-
 
     def __repr__(self):
         return '<Post %r>' % self.title

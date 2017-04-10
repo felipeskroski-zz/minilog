@@ -20,6 +20,7 @@ def check_hash(password_attempt, hashed):
     """Checks the password hash against a test"""
     return hashpw(password_attempt, hashed) == hashed
 
+
 # ----------------------------
 # Forms
 # ----------------------------

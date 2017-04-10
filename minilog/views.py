@@ -34,9 +34,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapped
 
+
 def render_with_user(*args, **kwargs):
     u = current_user()
     return render_template(user=u, *args, **kwargs)
+
 
 # ----------------------------
 # views
@@ -50,14 +52,13 @@ def show_categories():
         'categories.html', categories=categories, items=items)
 
 
-
 @app.route('/catalog.json')
 def json_categories():
     categories = Category.query.all()
     items = Item.query.limit(10).all()
     names = []
     for c in categories:
-        items=[]
+        items = []
         for i in c.get_items():
             items.append({
                 'id': i.id,
@@ -70,7 +71,7 @@ def json_categories():
         names.append({
             'id': c.id,
             'category': c.name,
-            'author_id' : c.author_id,
+            'author_id': c.author_id,
             'items': items
         })
     return jsonify(categories=names)
@@ -139,7 +140,7 @@ def json_category(c_name):
     c = Category.by_name(c_name)
     items = Item.query.filter_by(category_id=c.id).all()
     cat = []
-    items=[]
+    items = []
     for i in c.get_items():
         items.append({
             'id': i.id,
@@ -152,7 +153,7 @@ def json_category(c_name):
     cat.append({
         'id': c.id,
         'category': c.name,
-        'author_id' : c.author_id,
+        'author_id': c.author_id,
         'items': items
     })
     return jsonify(category=cat)
@@ -214,6 +215,7 @@ def edit_item(i_id):
         form.category_id.data = i.category_id
         return render_with_user('item_new.html', form=form, i=i)
 
+
 @app.route('/item/delete/<int:item_id>')
 @login_required
 def delete_item(item_id):
@@ -238,6 +240,7 @@ def show_item(c_name, item_name):
     return render_with_user(
         'item.html', c_name=c_name, item=i)
 
+
 @app.route('/<c_name>/<item_name>/item.json')
 def json_item(c_name, item_name):
     i = Item.by_name(item_name)
@@ -259,6 +262,7 @@ def createUser(login_session):
     session.commit()
     user = session.query(User).filter_by(email=login_session['email']).one()
     return user.id
+
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -306,15 +310,15 @@ def fbconnect():
 
     app_id = app.config['FACEBOOK']['app_id']
     app_secret = app.config['FACEBOOK']['app_secret']
-    #send token request to facebook
+    # send token request to facebook
     url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
         app_id, app_secret, access_token)
     h = httplib2.Http()
-    #response from server
-    result =json.loads(h.request(url, 'GET')[1])
+    # response from server
+    result = json.loads(h.request(url, 'GET')[1])
     token = result["access_token"]
 
-    #with the token get users data
+    # with the token get users data
     url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
@@ -347,6 +351,7 @@ def fbconnect():
     flash('Welcome back %s were logged out' % session['name'])
     return redirect(url_for('show_categories'))
 
+
 @app.route('/logout')
 def logout():
     """Logs the user out"""
@@ -355,6 +360,7 @@ def logout():
     session.pop('email', None)
     flash('You were logged out')
     return redirect(url_for('show_categories'))
+
 
 def fbdisconnect():
     facebook_id = session['facebook_id']
