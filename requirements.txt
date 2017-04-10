@@ -7,3 +7,4 @@ Werkzeug==0.11.15
 WTForms==2.1
 python_bcrypt==0.3.2
 gunicorn==19.7.1
+psycopg2==2.7.1
