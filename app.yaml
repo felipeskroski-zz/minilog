@@ -1,0 +1,15 @@
+entrypoint: export FLASK_APP=minilog\flask initdb\flask populatedb\flask run
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+- url: /static
+  static_dir: static
+
+- url: /.*
+  script: minilog.views.app
+
+- url: /favicon\.ico
+  static_files: static/img/favicon.ico
+  upload: static/img/favicon\.ico
