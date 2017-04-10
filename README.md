@@ -1,44 +1,68 @@
-# python-getting-started
+## Minimum - a Python's minimalist catalog system
 
-A barebones Python app, which can easily be deployed to Heroku.
+A minimalist catalog with full secure authentication and file management
 
-This application supports the [Getting Started with Python on Heroku](https://devcenter.heroku.com/articles/getting-started-with-python) article - check it out.
+## Requirements
+1. Python 2.7
+2. sqlite
+3. Flask
+4. bcrypt
+5. functools
+6. werkzeug.utils
+7. flask_wtf
+8. flask_sqlalchemy
 
-## Running Locally
-
-Make sure you have Python [installed properly](http://install.python-guide.org).  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/) and [Postgres](https://devcenter.heroku.com/articles/heroku-postgresql#local-setup).
-
-```sh
-$ git clone git@github.com:heroku/python-getting-started.git
-$ cd python-getting-started
-
-$ pip install -r requirements.txt
-
-$ createdb python_getting_started
-
-$ python manage.py migrate
-$ python manage.py collectstatic
-
-$ heroku local
+You can install the dependencies using pip, example:
+```
+pip install flask
 ```
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
+## Install and run
+1. Clone this git repo
 
-## Deploying to Heroku
+2. Change the secret in config.py for security in the config file
 
-```sh
-$ heroku create
-$ git push heroku master
+3. Install the sqlite database
+  ```
+  export FLASK_APP=minilog
+  export FLASK_DEBUG=1
+  flask initdb
+  ```
 
-$ heroku run python manage.py migrate
-$ heroku open
-```
-or
+4. _Optional_ Populate the database with dummy data
+  ```
+  export FLASK_APP=minilog
+  export FLASK_DEBUG=1
+  flask populatedb
+  ```
+  If you have errors here start again from step 3
 
-[![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
+5. Run this project locally from the command line
 
-## Documentation
+   ```
+   export FLASK_APP=minilog
+   export FLASK_DEBUG=1
+   flask run
+   ```
+   To test with Gunicorn use
+   ```
+   gunicorn -b localhost:5000 -w 4 main:ap --log-file
+   ```
 
-For more information about using Python on Heroku, see these Dev Center articles:
+6. Login using the dummy user credentials **Delete this user in production**
 
-- [Python on Heroku](https://devcenter.heroku.com/categories/python)
+  ```
+  email: admin@example.com
+  password: password
+  ```
+
+
+### Feedback
+Star this repo if you found it useful. Use the github issue tracker to give
+feedback on this repo.
+
+## Licensing
+See [LICENSE](LICENSE)
+
+## Author
+Felipe Skroski
