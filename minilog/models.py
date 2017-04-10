@@ -6,7 +6,9 @@ from flask import (
 )
 from flask_sqlalchemy import SQLAlchemy
 from helpers import check_hash, create_hash
+
 from config import app
+
 
 db = SQLAlchemy(app)
 
@@ -28,10 +30,11 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(80))
 
-    def __init__(self, name, email, password):
+    def __init__(self, name, email, password=None):
         self.name = name
         self.email = email
-        self.password = create_hash(str(password))
+        if password:
+            self.password = create_hash(str(password))
 
     def __repr__(self):
         return '<User %r>' % self.name
