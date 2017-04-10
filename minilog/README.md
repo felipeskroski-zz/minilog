@@ -44,6 +44,11 @@ pip install flask
    export FLASK_DEBUG=1
    flask run
    ```
+   To test with Gunicorn use
+   ```
+   gunicorn -b localhost:5000 -w 4 main:ap --log-file
+   ```
+
 6. Login using the dummy user credentials **Delete this user in production**
 
   ```

@@ -1,20 +1,24 @@
 import os
+import random
+import string
+import httplib2
+import json
 from datetime import datetime
 from functools import wraps
 from flask import (
     Flask, request, session, g, redirect, url_for,
-    abort, render_template, flash, escape, jsonify
+    abort, render_template, flash, escape, jsonify, make_response
 )
 from werkzeug.utils import secure_filename
 from models import (
     User, Item, Category, create_hash, check_hash,
-    init_db, populate_db, initdb_command, populate_command,
-    current_user, db
+    init_db, populate_db, initdb_command, populate_command, current_user, db
 )
-
 from helpers import (
     SignupForm, LoginForm, ItemForm, CategoryForm
 )
+
+from sqlalchemy import desc
 from config import app
 
 
@@ -34,7 +38,6 @@ def render_with_user(*args, **kwargs):
     u = current_user()
     return render_template(user=u, *args, **kwargs)
 
-
 # ----------------------------
 # views
 # ----------------------------
@@ -42,7 +45,7 @@ def render_with_user(*args, **kwargs):
 def show_categories():
     """Show all categories and latest items"""
     categories = Category.query.all()
-    items = Item.query.order_by('pub_date desc').limit(10).all()
+    items = Item.query.order_by(desc('pub_date')).limit(10).all()
     return render_with_user(
         'categories.html', categories=categories, items=items)
 
@@ -249,6 +252,14 @@ def json_item(c_name, item_name):
     return jsonify(item=item_json)
 
 
+def createUser(login_session):
+    newUser = User(name=login_session['username'], email=login_session[
+                   'email'], picture=login_session['picture'])
+    session.add(newUser)
+    session.commit()
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    return user.id
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     """Creates a new user"""
@@ -268,6 +279,7 @@ def signup():
 def login():
     """Logs the user in"""
     form = LoginForm(request.form)
+
     if request.method == 'POST' and form.validate():
         u = User.by_email(form.email.data)
         if u and check_hash(str(form.password.data), str(u.password)):
@@ -276,12 +288,79 @@ def login():
             return redirect(url_for('show_categories'))
         else:
             error = "User not valid"
-    return render_template('login.html', form=form)
+    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                    for x in xrange(32))
+    session['state'] = state
+    return render_with_user('login.html', form=form, STATE=state)
 
+
+@app.route('/fbconnect', methods=['POST'])
+def fbconnect():
+    if request.args.get('state') != session['state']:
+        response = make_response(json.dumps('Invalid state parameter.'), 401)
+        response.headers['Content-Type'] = 'application/json'
+        # print('compare states %s, %s' % (request.args.get('state'), session['state']))
+        return response
+    access_token = request.data
+    # print "access token received %s " % access_token
+
+    app_id = app.config['FACEBOOK']['app_id']
+    app_secret = app.config['FACEBOOK']['app_secret']
+    #send token request to facebook
+    url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
+        app_id, app_secret, access_token)
+    h = httplib2.Http()
+    #response from server
+    result =json.loads(h.request(url, 'GET')[1])
+    token = result["access_token"]
+
+    #with the token get users data
+    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    # print "url sent for API access:%s"% url
+    # print "API JSON result: %s" % result
+    # serializes result
+    data = json.loads(result)
+    session['provider'] = 'facebook'
+    session['name'] = data["name"]
+    session['email'] = data["email"]
+    session['facebook_id'] = data["id"]
+    session['access_token'] = token
+
+    # Get user picture
+    url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200' % token
+    h = httplib2.Http()
+    result = h.request(url, 'GET')[1]
+    data = json.loads(result)
+
+    session['picture'] = data["data"]["url"]
+
+    # see if user exists
+    user = User.by_email(session['email'])
+    if not user:
+        new_user = User(name=session['name'], email=session['email'])
+        db.session.add(new_user)
+        db.session.commit()
+        user = new_user
+    session['user_id'] = user.id
+    flash('Welcome back %s were logged out' % session['name'])
+    return redirect(url_for('show_categories'))
 
 @app.route('/logout')
 def logout():
     """Logs the user out"""
+    if session['facebook_id']:
+        fbdisconnect()
     session.pop('email', None)
     flash('You were logged out')
     return redirect(url_for('show_categories'))
+
+def fbdisconnect():
+    facebook_id = session['facebook_id']
+    # The access token must me included to successfully logout
+    access_token = session['access_token']
+    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token)
+    h = httplib2.Http()
+    result = h.request(url, 'DELETE')[1]
+    print result

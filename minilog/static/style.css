@@ -145,3 +145,13 @@ select{
   border: 1px solid #c7d8d5;
   color: #5f9f92;
 }
+button{
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+#result{
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-family: 'Libre Franklin', sans-serif;
+}

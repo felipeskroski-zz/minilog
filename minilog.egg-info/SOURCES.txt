@@ -1,9 +1,0 @@
-MANIFEST.in
-minilog/__init__.py
-minilog/minilog.py
-minilog/schema.sql
-minilog.egg-info/PKG-INFO
-minilog.egg-info/SOURCES.txt
-minilog.egg-info/dependency_links.txt
-minilog.egg-info/requires.txt
-minilog.egg-info/top_level.txt
