@@ -1,6 +1,8 @@
 ## Minimum - a Python's minimalist catalog system
 
-A minimalist catalog with full secure authentication and file management
+A minimalist catalog with full secure authentication, facebook OAuth integration and file management
+
+demo at https://minilog.herokuapp.com/
 
 ## Requirements
 1. Python 2.7
@@ -44,7 +46,7 @@ pip install flask
    export FLASK_DEBUG=1
    flask run
    ```
-   To test with Gunicorn use
+   To test with Gunicorn for heroku deployment use
    ```
    gunicorn -b localhost:5000 -w 4 main:ap --log-file
    ```
