@@ -13,7 +13,7 @@ app.config.update(dict(
     MAX_CONTENT_LENGTH=2 * 1024 * 1024,
     FACEBOOK={
         "app_id": "425051767841997", # change your app id
-        "app_secret": "" # Add your secret here
+        "app_secret": "09ccea84402ea63171b7ce4665d1c83" # change your app id
     }
 ))
 
