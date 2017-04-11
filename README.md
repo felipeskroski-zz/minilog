@@ -22,7 +22,7 @@ pip install flask
 ## Install and run
 1. Clone this git repo
 
-2. Change the secret in config.py for security in the config file
+2. Register your app on facebook and change the secret in config.py for security in the config file
 
 3. Install the sqlite database
   ```

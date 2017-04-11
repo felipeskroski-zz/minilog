@@ -100,6 +100,9 @@ def edit_category(c_id):
     """Updates a category"""
     form = CategoryForm(request.form)
     c = Category.by_id(c_id)
+    if not c.is_author():
+        flash('Only authors can edit categories')
+        return redirect(url_for('show_categories'))
     if form.validate_on_submit():
         db.session.query(Category).\
             filter_by(id=c.id).update({"name": form.name.data})
@@ -194,6 +197,9 @@ def edit_item(i_id):
     categories = Category.query.order_by('name').all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
     i = Item.by_id(i_id)
+    if not i.is_author():
+        flash('Only authors can edit items')
+        return redirect(url_for('show_categories'))
     if form.validate_on_submit():
         i.delete_image()
         f = form.upload.data
