@@ -16,7 +16,7 @@ demo at https://minilog.herokuapp.com/
 
 You can install the dependencies using pip, example:
 ```
-pip install flask
+pip install -r requirements.txt
 ```
 
 ## Install and run
